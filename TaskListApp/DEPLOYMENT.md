@@ -3,7 +3,7 @@
 ## 📋 Pre-Deployment Checklist
 
 ### ✅ Security
-- [ ] Change default admin password (`admin`/`admin123`)
+- [ ] Change default admin password (`admin`/`admin`)
 - [ ] Review security headers
 - [ ] Disable H2 console in production
 - [ ] Set `spring.jpa.show-sql=false`
