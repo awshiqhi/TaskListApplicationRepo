@@ -1,7 +1,0 @@
-com\example\tasklistapp\validation\PasswordValidatorTest$TestPassword.class
-com\example\tasklistapp\service\TaskServiceTest.class
-com\example\tasklistapp\Controller\TaskControllerTest.class
-com\example\tasklistapp\validation\InputSanitizerTest.class
-com\example\tasklistapp\Controller\RegistrationControllerTest.class
-com\example\tasklistapp\validation\PasswordValidatorTest.class
-com\example\tasklistapp\TaskListAppApplicationTests.class

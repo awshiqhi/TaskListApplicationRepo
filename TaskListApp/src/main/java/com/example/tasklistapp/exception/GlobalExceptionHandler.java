@@ -198,6 +198,11 @@ Unexpected runtime errors  */
             Exception ex, 
             HttpServletRequest request) {
         
+        // Silently ignore favicon.ico requests - browsers request this automatically
+        if (request.getRequestURI().contains("/favicon.ico")) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+        
         log.error("Unexpected error occurred: ", ex);
         
         ErrorResponse errorResponse = new ErrorResponse(

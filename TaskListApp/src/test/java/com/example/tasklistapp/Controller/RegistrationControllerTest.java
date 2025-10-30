@@ -80,18 +80,18 @@ class RegistrationControllerTest {
     }
     
     @Test
-    @DisplayName("Should reject SQL injection attempt in password")
-    void testSQLInjectionInPassword() throws Exception {
+    @DisplayName("Should accept password with special characters including SQL-like patterns")
+    void testPasswordWithSpecialCharacters() throws Exception {
         UserRegistrationRequest request = new UserRegistrationRequest(
-            "testuser",
+            "testuser123",
             "test@example.com",
-            "Pass123'; DROP TABLE users--"
+            "Pass123';--"
         );
         
         mockMvc.perform(post("/req/signup")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isOk());
     }
     
     @Test

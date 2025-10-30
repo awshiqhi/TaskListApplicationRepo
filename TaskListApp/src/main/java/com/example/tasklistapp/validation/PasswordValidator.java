@@ -6,15 +6,15 @@ import java.util.regex.Pattern;
 
 public class PasswordValidator implements ConstraintValidator<ValidPassword, String> {
     
-    // Patterns to detect common SQL injection attempts
-    private static final Pattern SQL_INJECTION_PATTERN = Pattern.compile(
-        ".*('|(--)|;|/\\*|\\*/|xp_|sp_|exec|execute|select|insert|update|delete|drop|create|alter|union|script|javascript|<|>).*",
-        Pattern.CASE_INSENSITIVE
-    );
-    
     // Password length constraints
     private static final int MIN_LENGTH = 3;
     private static final int MAX_LENGTH = 128;
+    
+    // Pattern to detect potentially malicious content (XSS attempts)
+    private static final Pattern DANGEROUS_PATTERN = Pattern.compile(
+        ".*(<script|<iframe|javascript:|onerror|onload).*",
+        Pattern.CASE_INSENSITIVE
+    );
     
     @Override
     public boolean isValid(String password, ConstraintValidatorContext context) {
@@ -25,23 +25,23 @@ public class PasswordValidator implements ConstraintValidator<ValidPassword, Str
             return false;
         }
         
-        // Check for SQL injection patterns
-        if (SQL_INJECTION_PATTERN.matcher(password).matches()) {
-            context.disableDefaultConstraintViolation();
-            context.buildConstraintViolationWithTemplate(
-                "Password contains invalid characters")
-                   .addConstraintViolation();
-            return false;
-        }
-        
-        // Check length only
+        // Check length
         if (password.length() < MIN_LENGTH || password.length() > MAX_LENGTH) {
             context.disableDefaultConstraintViolation();
             context.buildConstraintViolationWithTemplate(
                 "Password must be between 3 and 128 characters")
                    .addConstraintViolation();
             return false;
-        } 
+        }
+        
+        // Check for dangerous XSS patterns (defense in depth)
+        if (DANGEROUS_PATTERN.matcher(password).matches()) {
+            context.disableDefaultConstraintViolation();
+            context.buildConstraintViolationWithTemplate(
+                "Password contains invalid characters")
+                   .addConstraintViolation();
+            return false;
+        }
         
         return true;
     }

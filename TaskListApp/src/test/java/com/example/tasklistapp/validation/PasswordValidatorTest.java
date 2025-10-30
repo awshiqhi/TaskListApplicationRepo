@@ -60,37 +60,35 @@ class PasswordValidatorTest {
     }
     
     @Test
-    @DisplayName("Should reject password with SQL injection attempt - SELECT")
-    void testSQLInjectionSelect() {
+    @DisplayName("Should accept password with SQL-like characters (SQL keywords allowed)")
+    void testSQLLikeCharactersAllowed() {
         TestPassword test = new TestPassword("Pass123'SELECT*FROM users--");
         Set<ConstraintViolation<TestPassword>> violations = validator.validate(test);
-        assertFalse(violations.isEmpty(), "SQL injection attempt should be rejected");
-        assertTrue(violations.iterator().next().getMessage()
-            .contains("invalid characters"));
+        assertTrue(violations.isEmpty(), "SQL keywords in passwords should be allowed since they're hashed");
     }
     
     @Test
-    @DisplayName("Should reject password with SQL injection attempt - DROP")
-    void testSQLInjectionDrop() {
-        TestPassword test = new TestPassword("Pass123';DROP TABLE users--");
+    @DisplayName("Should accept password with special characters")
+    void testSpecialCharactersAllowed() {
+        TestPassword test = new TestPassword("Pass123!@#$%^&*()_+-=[];',./");
         Set<ConstraintViolation<TestPassword>> violations = validator.validate(test);
-        assertFalse(violations.isEmpty(), "SQL injection attempt should be rejected");
+        assertTrue(violations.isEmpty(), "Special characters should be allowed in passwords");
     }
     
     @Test
-    @DisplayName("Should reject password with SQL injection attempt - UNION")
-    void testSQLInjectionUnion() {
-        TestPassword test = new TestPassword("Pass123'UNION SELECT");
+    @DisplayName("Should accept password with quotes and semicolons")
+    void testQuotesAndSemicolonsAllowed() {
+        TestPassword test = new TestPassword("Pass'word;123");
         Set<ConstraintViolation<TestPassword>> violations = validator.validate(test);
-        assertFalse(violations.isEmpty(), "SQL injection attempt should be rejected");
+        assertTrue(violations.isEmpty(), "Quotes and semicolons should be allowed");
     }
     
     @Test
-    @DisplayName("Should reject password with SQL comment markers")
-    void testSQLCommentMarkers() {
+    @DisplayName("Should accept password with hyphens")
+    void testHyphensAllowed() {
         TestPassword test = new TestPassword("Pass123--comment");
         Set<ConstraintViolation<TestPassword>> violations = validator.validate(test);
-        assertFalse(violations.isEmpty(), "SQL comment markers should be rejected");
+        assertTrue(violations.isEmpty(), "Hyphens should be allowed in passwords");
     }
     
     @Test
@@ -99,6 +97,32 @@ class PasswordValidatorTest {
         TestPassword test = new TestPassword("Pass123<script>alert(1)</script>");
         Set<ConstraintViolation<TestPassword>> violations = validator.validate(test);
         assertFalse(violations.isEmpty(), "Script tags should be rejected");
+        assertTrue(violations.iterator().next().getMessage()
+            .contains("invalid characters"));
+    }
+    
+    @Test
+    @DisplayName("Should reject password with javascript: protocol")
+    void testJavascriptProtocol() {
+        TestPassword test = new TestPassword("Pass123javascript:alert(1)");
+        Set<ConstraintViolation<TestPassword>> violations = validator.validate(test);
+        assertFalse(violations.isEmpty(), "JavaScript protocol should be rejected");
+    }
+    
+    @Test
+    @DisplayName("Should reject password with iframe tags")
+    void testIframeTags() {
+        TestPassword test = new TestPassword("Pass123<iframe>content</iframe>");
+        Set<ConstraintViolation<TestPassword>> violations = validator.validate(test);
+        assertFalse(violations.isEmpty(), "Iframe tags should be rejected");
+    }
+    
+    @Test
+    @DisplayName("Should reject password with onerror handler")
+    void testOnerrorHandler() {
+        TestPassword test = new TestPassword("Pass123onerror=alert(1)");
+        Set<ConstraintViolation<TestPassword>> violations = validator.validate(test);
+        assertFalse(violations.isEmpty(), "Event handlers should be rejected");
     }
     
     @Test
