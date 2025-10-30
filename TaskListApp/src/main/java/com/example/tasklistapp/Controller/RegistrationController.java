@@ -6,6 +6,7 @@ import com.example.tasklistapp.exception.InvalidRequestException;
 import com.example.tasklistapp.validation.InputSanitizer;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -73,7 +74,12 @@ public class RegistrationController {
         user.setPassword(passwordEncoder.encode(request.getPassword())); // Password is already validated by @ValidPassword
         user.setVerified(true);
         
-        myAppUserRepository.save(user);
+        try {
+            myAppUserRepository.save(user);
+        } catch (DataIntegrityViolationException e) {
+            // Handle race condition where duplicate username/email was inserted between check and save
+            throw new DuplicateResourceException("Registration failed, user already exists");
+        }
         
         return new ResponseEntity<>("Registration successful! You can now log in.", HttpStatus.OK);
     }
