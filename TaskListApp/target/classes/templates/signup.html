@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Signup Form</title>
+  <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
+  <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
+  <link rel="stylesheet" href="/css/style.css">
+  <script src="/js/signup.js" defer></script>
+</head>
+<body>
+  <section>
+    <form action="/req/signup" method="post">
+      <h1>Sign Up</h1>
+        <div class="inputbox">
+            <input type="text" id= "username" name="username" required>
+            <label for="">Name</label>
+        </div>
+        <div class="inputbox">
+            <input type="email" id="email" name="email" required>
+            <label for="">Email</label>
+        </div>
+        
+        <div class="inputbox">
+            <input type="password" id="password" name="password" required>
+            <label for="">Password</label>
+        </div>  
+        <div class="inputbox">
+          <input type="password" id="passwordcon" name="passwordcon" required>
+          <label for="">Confirm Password</label>
+      </div>  
+        <button id= "submit" type="button">Sign Up</button>
+      <div class="register">
+        <p>Already have an account? <a href="/req/login">Log In</a></p>
+      </div>
+    </form>
+  </section>
+
+<!-- Custom Alert Container -->
+<div id="customAlertContainer"></div>
+
+</body>
+</html>
+<script>
+  function showCustomAlert(message, type = 'error') {
+    const container = document.getElementById('customAlertContainer');
+    
+    const alertDiv = document.createElement('div');
+    alertDiv.className = `custom-alert custom-alert-${type}`;
+    alertDiv.innerHTML = `
+      <div class="custom-alert-content">
+        <span class="custom-alert-icon">${type === 'error' ? '✕' : '✓'}</span>
+        <span class="custom-alert-message">${message.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</span>
+        <button class="custom-alert-close" onclick="this.parentElement.parentElement.remove()">&times;</button>
+      </div>
+    `;
+    
+    container.appendChild(alertDiv);
+    
+    setTimeout(() => {
+      if (alertDiv.parentElement) {
+        alertDiv.remove();
+      }
+    }, 5000);
+  }
+
+  const submitButttom = document.getElementById("submit");
+  submitButttom.addEventListener('click',(e)=>{
+    e.preventDefault(); // Prevent default form submission
+    
+    const username = document.getElementById('username').value;
+    const password = document.getElementById('password').value;
+    const confirmPassword = document.getElementById('passwordcon').value;
+    const email = document.getElementById('email').value;
+    const data ={
+      username,
+      email,
+      password
+    }
+    
+    if(password == confirmPassword){
+      const jsonData = JSON.stringify(data);
+      fetch('/req/signup', {
+        method: 'POST',
+        headers:{
+          'Content-Type': 'application/json'
+        },
+        body: jsonData
+      })
+      .then(response => {
+        if(response.ok){
+          return response.text();
+        } else {
+          // Try to parse error as JSON, fallback to text
+          const contentType = response.headers.get('content-type');
+          if (contentType && contentType.includes('application/json')) {
+            return response.json().then(errorData => {
+              throw new Error(errorData.message || 'Registration failed');
+            });
+          } else {
+            return response.text().then(text => {
+              throw new Error(text || 'Registration failed');
+            });
+          }
+        }
+      })
+      .then(message => {
+        showCustomAlert(message, 'success');
+        setTimeout(() => {
+          window.location.href = '/req/login';
+        }, 1500);
+      })
+      .catch(error => {
+        console.error('Registration error:', error);
+        showCustomAlert(error.message || 'Registration failed. Please try again.');
+      });
+    } else {
+      showCustomAlert('Passwords do not match!');
+    }
+    
+  })
+
+  
+</script>
